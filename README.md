@@ -35,3 +35,11 @@ mlmanager is a python based manager to help maintain the state of iPhones runnin
 - `ipa` is the path to an IPA file on disk. I recommend building and signing like normal then doing a copy to /Users/Shared with a static name since that directory has read access by default on macOS.
 - `"devices": []` by default will take action on all attached devices. If you want to be selective on your actions add the **exact** device name as seen in Xcode.
   IE - "devices": ["SE001", "SE002"]`
+
+## FAQ
+Q: **I receive a bunch of "Could not start screenshotr service!..." errors?**
+A: Make sure you have device support files for all attached devices. You can verify this via Xcode > Window > Devices and Simulators... If you have a yellow header like below then you need to install support files which can be obtained from [iGhibli/iOS-DeviceSupport](https://github.com/iGhibli/iOS-DeviceSupport)
+
+```/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/DeviceSupport```
+
+![device support files](https://i.imgur.com/wNXHsBm.png)
