@@ -20,15 +20,18 @@ mlmanager is a python based manager to help maintain the state of iPhones runnin
 1. `cp config.example.json config.json`
 1. Fill out the config file (more details in the options category below)
 1. Install dependencies `npm install` and `brew install python3`
+1. Install python modules `pip3 install -r requirements.txt`
 1. Install pm2 (optional) `npm install pm2 -g`
 1. Start the manager with `pm2 start mlmanager.py --interpreter=python3` or `python3 mlmanager.py` if not using pm2
 
 ### Options
 
-- `deviceHold` is how long before mlmanager will take action on a device for repeat fix
+- `user` is an admin username for rdm dashboard
+- `password` is the associated password for the rdm user
+- `deviceHold` is how long mlmanager will wait before taking action on a device for repeat actions
   IE - 300 seconds means 5 minutes after installing or rebooting a device we will attempt to apply a fix again
-- `"devices": []` will take action on all attached devices. If you want to be selective on your actions add the **exact** device name as seen in Xcode.
-  IE - "devices": ["SE001", "SE002"]`
-- `threshold` values are in seconds and are how long before an action should be applied
+- `threshold` values are in seconds. This determines how long before a device is considered inactive and requires a fix.
 - `saveScreenshots` if you want to store screenshots locally to help with debugging
 - `ipa` is the path to an IPA file on disk. I recommend building and signing like normal then doing a copy to /Users/Shared with a static name since that directory has read access by default on macOS.
+- `"devices": []` by default will take action on all attached devices. If you want to be selective on your actions add the **exact** device name as seen in Xcode.
+  IE - "devices": ["SE001", "SE002"]`

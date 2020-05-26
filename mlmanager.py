@@ -1,4 +1,5 @@
 import time
+import os
 import sys
 import threading
 import json
@@ -56,10 +57,8 @@ class Manager:
 
         for device in devices:
             name = devices[device].decode("utf-8")
-            if (
-                name not in status.keys()
-                and self.allowed_devices
-                and name not in self.allowed_devices
+            if name not in status.keys() or (
+                self.allowed_devices and name not in self.allowed_devices
             ):
                 continue
             # Respect the last action so devices have enough time to start working
@@ -68,6 +67,7 @@ class Manager:
                 print("DEBUG: need to wait longer before acting on {}".format(name))
                 continue
             # Save device screenshot
+            # TODO: We should respect timeouts and not screenshot every 30sec
             if self.save_screenshots:
                 self.screenshot(device, name)
             # TODO: Install and restart happen in the same run. Need to delay restart action.
@@ -76,13 +76,13 @@ class Manager:
                 and os.path.isfile(self.ipa_path)
             ):
                 print("Installing ipa on device {}...".format(name))
-                # self.install(device)
+                self.install(device)
                 self.device_action[name] = self.current_time()
             if self.restart_enabled and (
                 status[name] + self.restart_threshold <= self.current_time()
             ):
                 print("Restarting device {}...".format(name))
-                # self.restart(device)
+                self.restart(device)
                 self.device_action[name] = self.current_time()
 
     def current_time(self):
@@ -128,7 +128,7 @@ class Manager:
         run = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         output, err = run.communicate()
         if "Screenshot saved to" not in str(output):
-            print("Error Device {} - {}".format(name, output.strip()))
+            print("Error taking screenshot on {} - {}".format(name, output.strip()))
 
     def restart(self, uuid: str):
         cmd = ["idevicediagnostics", "restart", "--udid", uuid]
