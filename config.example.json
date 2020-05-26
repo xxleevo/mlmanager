@@ -1,0 +1,17 @@
+{
+    "frontendURL": "http://192.168.1.1:9000/",
+    "user": "username",
+    "password": "password",
+    "deviceHold": 300,
+    "restart": {
+        "enabled": false,
+        "threshold": 1800
+    },
+    "install": {
+        "enabled": true,
+        "threshold": 900
+    },
+    "saveScreenshots": true,
+    "ipa": "/Users/Shared/pogo.ipa",
+    "devices": []
+}
