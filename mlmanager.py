@@ -43,28 +43,32 @@ class Manager:
 
     def controller(self):
         devices = self.all_devices()
+        devices_count = len(devices.keys())
         if not devices:
             print("Failed to load devices (or none connected)")
             time.sleep(1)
 
-        print("{} device connected".format(len(devices.keys())))
+        print(f"{devices_count} device connected")
 
         status = self.device_status()
+        status_count = len(status.keys())
         if not status:
             print("Failed to load status")
             time.sleep(1)
-        print("{} status found".format(len(status.keys())))
+        print(f"{status_count} status found")
 
         for device in devices:
             name = devices[device].decode("utf-8")
-            if name not in status.keys() or (
-                self.allowed_devices and name not in self.allowed_devices
-            ):
+            if name not in status.keys():
+                print("DEBUG: No RDM status for this device skipping...")
+                continue
+            if self.allowed_devices and name not in self.allowed_devices:
+                print("DEBUG: Device is not allowed skipping...")
                 continue
             # Respect the last action so devices have enough time to start working
             last_action = self.device_action.get(name, 0)
             if (self.current_time() - last_action) <= self.hold:
-                print("DEBUG: need to wait longer before acting on {}".format(name))
+                print(f"DEBUG: need to wait longer before acting on {name}")
                 continue
             # Save device screenshot
             # TODO: We should respect timeouts and not screenshot every 30sec
@@ -73,15 +77,17 @@ class Manager:
             # TODO: Install and restart happen in the same run. Need to delay restart action.
             if self.install_enabled and (
                 status[name] + self.install_threshold <= self.current_time()
-                and os.path.isfile(self.ipa_path)
             ):
-                print("Installing ipa on device {}...".format(name))
-                self.install(device)
-                self.device_action[name] = self.current_time()
+                if os.path.isfile(self.ipa_path):
+                    print(f"Installing ipa on device {name}...")
+                    self.install(device)
+                    self.device_action[name] = self.current_time()
+                else:
+                    print(f"DEBUG: No ipa file found at '{self.ipa_path}'")
             if self.restart_enabled and (
                 status[name] + self.restart_threshold <= self.current_time()
             ):
-                print("Restarting device {}...".format(name))
+                print(f"Restarting device {name}...")
                 self.restart(device)
                 self.device_action[name] = self.current_time()
 
@@ -124,11 +130,11 @@ class Manager:
         return devices
 
     def screenshot(self, uuid: str, name: str):
-        cmd = ["idevicescreenshot", "--udid", uuid, "{}.png".format(name)]
+        cmd = ["idevicescreenshot", "--udid", uuid, f"{name}.png"]
         run = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         output, err = run.communicate()
         if "Screenshot saved to" not in str(output):
-            print("Error taking screenshot on {} - {}".format(name, output.strip()))
+            print(f"Error taking screenshot on '{name}': {output.strip()}")
 
     def restart(self, uuid: str):
         cmd = ["idevicediagnostics", "restart", "--udid", uuid]
