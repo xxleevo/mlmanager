@@ -1,4 +1,5 @@
 import time
+import datetime
 import os
 import sys
 import threading
@@ -27,9 +28,14 @@ class Manager:
         self.ipa_path = self.data["ipa"]
         self.save_screenshots = self.data["saveScreenshots"]
         self.device_action = {}
+        self.debug_logging = self.data["debugLogging"]
+        self.heartbeat_time = self.data["heartbeatTime"]
 
     def run(self):
         print("Start MacLessManager...")
+        self.heartbeat = 0
+        print (f"Debug Logging: {self.debug_logging}")
+        print (f"Heartbeat Time: {self.heartbeat_time} minutes")
         for sig in ("TERM", "HUP", "INT"):
             signal.signal(getattr(signal, "SIG" + sig), self.quit)
 
@@ -38,37 +44,52 @@ class Manager:
             self.exit.wait(30)
 
     def quit(self, signo, _frame):
-        print("Interrupted by %d, shutting down" % signo)
+        log = datetime.datetime.now().strftime("%m-%d-%Y %H:%M:%S")
+        print(f"[{log}] Interrupted by %d, shutting down" % signo)
         self.exit.set()
 
     def controller(self):
+        # Reset Heartbeat counter if time was reached
+        if self.heartbeat == (self.heartbeat_time * 2):
+            self.heartbeat = 0
+        
         devices = self.all_devices()
         devices_count = len(devices.keys())
         if not devices:
-            print("Failed to load devices (or none connected)")
+            log = datetime.datetime.now().strftime("%m-%d-%Y %H:%M:%S")
+            print(f"[{log}][ERROR] Failed to load devices (or none connected)")
             time.sleep(1)
-
-        print(f"{devices_count} device connected")
 
         status = self.device_status()
         status_count = len(status.keys())
         if not status:
-            print("Failed to load status")
+            log = datetime.datetime.now().strftime("%m-%d-%Y %H:%M:%S")
+            print(f"[{log}][ERROR] Failed to load status")
             time.sleep(1)
-        print(f"{status_count} status found")
+        # Print if the Heartbeat is reached the configured time
+        if self.heartbeat == 0:
+            #log_time = = time.strftime("%m-%d-%b %H:%M:%S")
+            log = datetime.datetime.now().strftime("%m-%d-%Y %H:%M:%S")
+            print(f"[{log}] Heartbeat! {devices_count} connected, {status_count} status found")
 
         for device in devices:
             name = devices[device].decode("utf-8")
             if name not in status.keys():
-                print("DEBUG: No RDM status for {name} skipping...")
+                if self.debug_logging:
+                    log = datetime.datetime.now().strftime("%m-%d-%Y %H:%M:%S")
+                    print(f"[{log}][DEBUG] No RDM status for {name} skipping...")
                 continue
             if self.allowed_devices and name not in self.allowed_devices:
-                print("DEBUG: Device is not allowed skipping...")
+                if self.debug_logging:
+                    log = datetime.datetime.now().strftime("%m-%d-%Y %H:%M:%S")
+                    print(f"[{log}][DEBUG] Device is not allowed skipping...")
                 continue
             # Respect the last action so devices have enough time to start working
             last_action = self.device_action.get(name, 0)
             if (self.current_time() - last_action) <= self.hold:
-                print(f"DEBUG: need to wait longer before acting on {name}")
+                if self.debug_logging:
+                    log = datetime.datetime.now().strftime("%m-%d-%Y %H:%M:%S")
+                    print(f"[{log}][DEBUG] Need to wait longer before acting on {name}")
                 continue
             # Save device screenshot
             # TODO: We should respect timeouts and not screenshot every 30sec
@@ -79,17 +100,22 @@ class Manager:
                 status[name] + self.install_threshold <= self.current_time()
             ):
                 if os.path.isfile(self.ipa_path):
-                    print(f"Installing ipa on device {name}...")
+                    log = datetime.datetime.now().strftime("%m-%d-%Y %H:%M:%S")
+                    print(f"[{log}] Installing ipa on device {name}...")
                     self.install(device)
                     self.device_action[name] = self.current_time()
                 else:
-                    print(f"DEBUG: No ipa file found at '{self.ipa_path}'")
+                    log = datetime.datetime.now().strftime("%m-%d-%Y %H:%M:%S")
+                    print(f"[{log}][DEBUG]: No ipa file found at '{self.ipa_path}'")
             if self.restart_enabled and (
                 status[name] + self.restart_threshold <= self.current_time()
             ):
-                print(f"Restarting device {name}...")
+                time = self.current_time() - status[name]
+                log = datetime.datetime.now().strftime("%m-%d-%Y %H:%M:%S")
+                print(f"[{log}] Restarting device {name}, last seen {time} seconds ago...")
                 self.restart(device)
                 self.device_action[name] = self.current_time()
+        self.heartbeat = self.heartbeat + 1
 
     def current_time(self):
         return int(time.time())
