@@ -1,27 +1,24 @@
 # mlmanager
 
-mlmanager is a python based manager to help maintain the state of iPhones running an iOS application in Guided Access Mode or Single App Mode.
+A python manager for basic controls of an iOS application.
 
 ## Prerequisites
 
 1. Install [Homebrew](https://brew.sh) if not already installed `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"`
 1. Update Homebrew `brew update`
 1. Uninstall previous versions of of tools to make sure they don't cause issues
-
-  ```shell
-  brew uninstall --ignore-dependencies usbmuxd libplist libimobiledevice ideviceinstaller ios-deploy
-  ```
-
+    ```shell
+    brew uninstall --ignore-dependencies usbmuxd libplist libimobiledevice ideviceinstaller ios-deploy
+    ```
 1. Install command line tools
-
-  ```shell
-  brew install --HEAD usbmushellxd
-  brew install --HEAD libplist
-  brew install --HEAD libimobiledevice
-  brew install ideviceinstaller
-  brew install ios-deploy
-  brew install python3
-  ```
+    ```shell
+    brew install --HEAD usbmushellxd
+    brew install --HEAD libplist
+    brew install --HEAD libimobiledevice
+    brew install ideviceinstaller
+    brew install ios-deploy
+    brew install python3
+    ```
 
 ## Installation
 
@@ -34,15 +31,15 @@ mlmanager is a python based manager to help maintain the state of iPhones runnin
 
 ### Options
 
-- `user` is an admin username for rdm dashboard
-- `password` is the associated password for the rdm user
-- `deviceHold` is how long mlmanager will wait before taking action on a device for repeat actions  
-  IE - 300 seconds means 5 minutes after installing or rebooting a device we will attempt to apply a fix again
-- `threshold` values are in seconds. This determines how long before a device is considered inactive and requires a fix.
-- `saveScreenshots` if you want to store screenshots locally to help with debugging
-- `ipa` is the path to an IPA file on disk. I recommend building and signing like normal then doing a copy to /Users/Shared with a static name since that directory has read access by default on macOS.
-- `"devices": []` by default will take action on all attached devices. If you want to be selective on your actions add the **exact** device name as seen in Xcode.  
-  IE - "devices": ["SE001", "SE002"]`
+- `user` is an admin username for rdm dashboard.
+- `password` is the associated password for the rdm user.
+- `deviceHold` time in seconds to wait before taking action a second time.   
+    IE - 300 seconds after installing or rebooting a device we will attempt to apply a fix again
+- `threshold` this determines how long before a device is considered inactive and requires a fix.
+- `saveScreenshots` create screenshots locally.
+- `ipa` path to ipa file on disk to install.
+- `"devices": []` devices to take action on. Leave empty to act on all attached devices.  
+    IE - `"devices": ["SE001", "SE002"]`
 
 ## FAQ
 
