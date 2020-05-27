@@ -60,7 +60,7 @@ class Manager:
         for device in devices:
             name = devices[device].decode("utf-8")
             if name not in status.keys():
-                print("DEBUG: No RDM status for this device skipping...")
+                print("DEBUG: No RDM status for {name} skipping...")
                 continue
             if self.allowed_devices and name not in self.allowed_devices:
                 print("DEBUG: Device is not allowed skipping...")
@@ -134,7 +134,7 @@ class Manager:
         run = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         output, err = run.communicate()
         if "Screenshot saved to" not in str(output):
-            print(f"Error taking screenshot on '{name}': {output.strip()}")
+            print(f"Error taking screenshot on '{name}': {str(output.strip())}")
 
     def restart(self, uuid: str):
         cmd = ["idevicediagnostics", "restart", "--udid", uuid]
